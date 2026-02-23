@@ -13,15 +13,21 @@ from sqlalchemy import (
     Time,
     ForeignKey,
     func,
+    ARRAY,
 )
-from sqlalchemy.dialects.postgresql import ARRAY, JSONB
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy import Enum as SQLEnum
-from models import Base
+from sqlalchemy.ext.declarative import declarative_base
+
+Base = declarative_base()
 
 
 # ---------------- ENUMS ---------------- #
 
-class RoleEnum(str, Enum):
+
+class RoleEnum(
+    str, Enum
+):  # We inherit from str so each enum member behaves like a normal string (e.g., can be compared to and serialized as a string).
     INVESTOR = "INVESTOR"
     FARM_MANAGER = "FARM_MANAGER"
     SUPERVISOR = "SUPERVISOR"
@@ -46,7 +52,23 @@ def generate_uuid():
 
 # ---------------- USERS TABLE ---------------- #
 
+
 class User(Base):
+    """
+    User model with fields for personal information, roles, contact details, andResponsibilities of Base:
+    - Registers the model with SQLAlchemy’s ORM system.
+    - Tracks table metadata (columns, constraints, relationships).
+    - Maps the Python class to a corresponding database table.
+    - Provides a default constructor that assigns keyword arguments to columns.
+    - Manages ORM internals such as state tracking, session integration,
+    change detection, and persistence behavior.
+
+    All database models must inherit from Base to participate in
+    SQLAlchemy’s ORM functionality.
+    """
+    """
+    The User model represents a user in the system with various attributes such as
+    """
     __tablename__ = "users"
 
     id = Column(String, primary_key=True, default=generate_uuid)
@@ -78,12 +100,83 @@ class User(Base):
     profile_image_url = Column(String(255))
     images = Column(ARRAY(String))
 
-    camera_config = Column(JSONB)
+    camera_config = Column(JSONB, nullable=True)
+    """
+    JSONB (JSON Binary) column for storing semi-structured configuration data.
+
+    What is JSONB?
+    --------------
+    JSONB is a PostgreSQL data type that stores JSON data in a decomposed binary
+    format instead of plain text. It allows efficient querying, indexing,
+    and partial updates.
+
+    JSON vs JSONB Comparison
+    ------------------------
+    Storage Type:
+        JSON  -> Text
+        JSONB -> Binary (decomposed storage)
+
+    Speed:
+        JSON  -> Slower (re-parsed on each read)
+        JSONB -> Faster (stored in parsed binary format)
+
+    Index Support:
+        JSON  -> Limited
+        JSONB -> Full indexing support (GIN / B-Tree)
+
+    Duplicate Keys:
+        JSON  -> Allowed
+        JSONB -> Not allowed (last key overwrites previous)
+
+    Query Performance:
+        JSON  -> Slower
+        JSONB -> Optimized for searching and filtering
+
+    Why JSONB is Used Here
+    ----------------------
+    This field stores dynamic camera configuration data such as:
+        - Resolution
+        - Frame rate
+        - Night mode settings
+        - Detection zones
+        - Custom metadata
+
+    The structure may vary per record, so a flexible schema is preferred.
+
+    When to Use JSONB
+    -----------------
+    Use JSONB when:
+        - Data structure varies between records
+        - You need flexible or optional fields
+        - Storing configuration or metadata
+        - Fast querying inside JSON fields is required
+        - Indexing JSON keys is needed
+
+    When NOT to Use JSONB
+    ---------------------
+    Avoid JSONB when:
+        - Data has a strict relational structure
+        - Frequent updates on individual fields are required
+        - Strong foreign key constraints are needed
+        - Large-scale analytical queries depend on structured columns
+        - Data should be normalized into separate tables
+
+    Note:
+    -----
+    For core relational data (like user name, email, foreign keys),
+    normal columns are preferred. JSONB is best for semi-structured
+    or dynamic data.
+    """
 
     # ---------------- OTP FIELDS ---------------- #
 
     signup_otp_count = Column(Integer, default=0, nullable=False)
     signup_latest_otp_requested_date = Column(DateTime(timezone=True))
+    """
+    All timestamps are stored in UTC to ensure consistency across different
+    time zones and regions. Using a single standard time (UTC) prevents
+    errors in comparisons, expiration logic, and distributed systems.
+    """
 
     forgot_password_otp_count = Column(Integer, default=0, nullable=False)
     forgot_password_latest_otp_requested_date = Column(DateTime(timezone=True))
@@ -131,7 +224,11 @@ class User(Base):
 
     def __repr__(self):
         return f"<User(id={self.id}, mobile={self.mobile}, roles={self.roles})>"
-      
+
+    """__repr__() defines how your object looks when printed or logged, mainly for 
+                debugging and developer clarity."""
+
+
 class Order(Base):
     __tablename__ = "orders"
 
@@ -171,7 +268,6 @@ class Order(Base):
         return f"<Order(order_no={self.order_no}, user_id={self.user_id})>"
 
 
-
 class Certification(Base):
     __tablename__ = "certifications"
 
@@ -200,3 +296,4 @@ class Certification(Base):
 
     def __repr__(self):
         return f"<Certification(id={self.id}, user_id={self.user_id})>"
+
