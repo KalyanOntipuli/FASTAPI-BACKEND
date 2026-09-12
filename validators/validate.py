@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr, Field, field_validator, model_validator
-from typing import Optional, List
+from typing import Optional, List, Literal
 from urllib.parse import urlparse
 from datetime import date, time, datetime
 from decimal import Decimal
