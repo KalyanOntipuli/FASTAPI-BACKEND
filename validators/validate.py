@@ -113,6 +113,7 @@ class ScheduleBookingReferenceModel(BaseModel):
         return self
 
     model_config = {
+        "extra": "forbid",
         "json_schema_extra": {
             "example": {
                 "booking_id": 1,
