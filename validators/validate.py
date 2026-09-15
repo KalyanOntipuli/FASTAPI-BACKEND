@@ -28,7 +28,7 @@ class FilterParams(BaseModel):
 
 class UserProfileReferenceModel(BaseModel):
     user_id: int = Field(..., gt=0, description="Unique user ID")
-    full_name: str = Field(..., min_length=3, max_length=100)
+    full_name: str = Field(..., min_length=3, max_length=100, examples=["KALYAN"]) #Instead of providing in json_schema_Extra we can provide it here.
     email: EmailStr
     phone_number: str = Field(..., description="10 digit Indian mobile number")
     profile_url: Optional[str] = Field(None, max_length=500)
