@@ -20,7 +20,7 @@ class Item(BaseModel):
     tax: float | None 
 
 
-@app.get("/items/{item_id}",summary="Create an item",response_description="The created item",)
+@app.get("/items/{item_id}",summary="Create an item",response_description="The created item",deprecated=True)
 async def test(
     item_id: int,
     item: Annotated[
